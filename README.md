@@ -21,7 +21,7 @@ int main(void) {
 }
 ```
 
-`sqlite3_libversion_number()` is `3530400`. `sqlite3_load_extension` is in
+`sqlite3_libversion_number()` is `3053004` (`SQLITE_VERSION_NUMBER`). The zip filename encodes the same release as `3530400`. `sqlite3_load_extension` is in
 the binary and stays off until the caller enables it for one connection.
 The amalgamation is compiled as the zip ships it: no `SQLITE_OMIT_*` and no
 extra `SQLITE_ENABLE_*`.
