@@ -76,7 +76,27 @@ PRODUCT,3.53.4,2026/sqlite-amalgamation-3530400.zip,2,cccccccccccccccccccccccccc
 -->
 </html>
 EOF
-"$PIN" check --root "$work" --page "$work/same.html" >/dev/null
+out=$("$PIN" check --root "$work" --page "$work/same.html" 2>&1) || fail "same version exited non-zero: $out"
+case "$out" in
+  *"newer amalgamation"*) fail "a different zip hash at the same version was treated as newer: $out" ;;
+esac
+
+cat > "$work/older.html" << 'EOF'
+<html>
+<!--
+PRODUCT,VERSION,RELATIVE-URL,SIZE-IN-BYTES,SHA3-HASH
+PRODUCT,3.53.3,2026/sqlite-amalgamation-3530300.zip,2,dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+-->
+</html>
+EOF
+out=$("$PIN" check --root "$work" --page "$work/older.html" 2>&1) || fail "older check exited non-zero: $out"
+case "$out" in
+  *"is not newer"*) ;;
+  *) fail "older check did not say it is not newer: $out" ;;
+esac
+case "$out" in
+  *"matches the pin"*) fail "older check claimed the pin is current: $out" ;;
+esac
 
 cat > "$work/empty.html" << 'EOF'
 <html><p>no table</p></html>

@@ -8,8 +8,10 @@ if ! nm -D --defined-only "$lib" >/dev/null 2>&1; then
   echo "check-sqlite-symbols: nm failed on $lib" >&2
   exit 1
 fi
-names=$(nm -D --defined-only "$lib" | awk '$2 ~ /^[TDBR]$/ {print $3}')
-leaked=$(printf '%s\n' "$names" | grep -v '^sqlite3_' | grep -v '^_' | grep -v '^$' || true)
+# POSIX format puts the name in field 1 for every symbol type. An
+# underscore name is an export, the same as any other.
+names=$(nm -D --defined-only -P "$lib" | awk '{print $1}')
+leaked=$(printf '%s\n' "$names" | grep -v '^sqlite3_' | grep -v '^$' || true)
 if [ -n "$leaked" ]; then
   echo "check-sqlite-symbols: exported symbols outside sqlite3_:" >&2
   printf '%s\n' "$leaked" >&2

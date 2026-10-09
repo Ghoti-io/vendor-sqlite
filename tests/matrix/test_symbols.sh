@@ -16,8 +16,14 @@ __attribute__((visibility("default"))) int sqlite3_libversion_number(void) { ret
 __attribute__((visibility("default"))) int sqlite3_load_extension(void) { return 0; }
 __attribute__((visibility("default"))) int not_sqlite(void) { return 0; }
 EOF
+cat > "$work/under.c" << 'EOF'
+__attribute__((visibility("default"))) int sqlite3_libversion_number(void) { return 0; }
+__attribute__((visibility("default"))) int sqlite3_load_extension(void) { return 0; }
+__attribute__((visibility("default"))) int _not_sqlite(void) { return 0; }
+EOF
 cc -shared -fPIC -fvisibility=hidden -o "$work/good.so" "$work/good.c"
 cc -shared -fPIC -fvisibility=hidden -o "$work/bad.so" "$work/bad.c"
+cc -shared -fPIC -fvisibility=hidden -o "$work/under.so" "$work/under.c"
 
 "$GATE" "$work/good.so" >/dev/null
 if "$GATE" "$work/bad.so" >"$work/bad.out" 2>&1; then
@@ -27,6 +33,15 @@ fi
 grep -q 'not_sqlite' "$work/bad.out" || {
   echo "test_symbols: failure did not name not_sqlite" >&2
   cat "$work/bad.out" >&2
+  exit 1
+}
+if "$GATE" "$work/under.so" >"$work/under.out" 2>&1; then
+  echo "test_symbols: underscore export was accepted" >&2
+  exit 1
+fi
+grep -q '_not_sqlite' "$work/under.out" || {
+  echo "test_symbols: failure did not name _not_sqlite" >&2
+  cat "$work/under.out" >&2
   exit 1
 }
 echo "test_symbols: pass"

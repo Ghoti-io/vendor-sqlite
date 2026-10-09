@@ -238,7 +238,15 @@ def main():
         die("the download page has no sqlite-amalgamation row")
     published = int(row["version_number"])
     recorded = int(pin["version_number"])
-    if published <= recorded:
+    # Version numbers only. A different zip hash at this version is not
+    # a newer release.
+    if published < recorded:
+        print(
+            "sqlite-pin: amalgamation "
+            + row["version"]
+            + " is not newer")
+        return
+    if published == recorded:
         print(
             "sqlite-pin: amalgamation "
             + row["version"]

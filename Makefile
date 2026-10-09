@@ -169,8 +169,9 @@ TESTFLAGS := $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_LOOKUP_PATH) pkg-config --libs
 
 # check-symbols rejects a non-sqlite3_ export. check-pin is the offline hash
 # gate. check-matrix covers the download-page and symbol-leak rows without
-# the network. The upstream check is tools/sqlite-pin.sh check and is not
-# in this list.
+# the network. The line count is a workspace command (./cloc.sh), not a
+# gate here: a clone of this repository has no workspace cloc.sh. The
+# upstream check is tools/sqlite-pin.sh check and is not in this list.
 TEST_GATES ?= check-symbols check-pin check-matrix
 
 VALGRIND_FLAGS := --leak-check=full --show-leak-kinds=definite,indirect,possible --track-origins=yes --error-exitcode=1 --suppressions=tests/valgrind.supp
@@ -188,8 +189,6 @@ TEST_EXECUTABLES := $(addprefix $(APP_DIR)/,$(addsuffix $(EXE_EXTENSION),$(TEST_
 
 EXAMPLE_SOURCES := $(shell find examples -type f -name '*.c' 2>/dev/null)
 EXAMPLES := $(patsubst examples/%.c,$(APP_DIR)/examples/%$(EXE_EXTENSION),$(EXAMPLE_SOURCES))
-
-WORKSPACE := $(abspath $(CURDIR)/../..)
 
 all: $(APP_DIR)/$(TARGET) $(APP_DIR)/$(STATIC_TARGET) ## Build shared + static libraries
 
@@ -283,10 +282,9 @@ endif
 check-pin: ## Fail if the amalgamation bytes do not match sqlite-pin
 	@tools/sqlite-pin.sh verify
 
-check-matrix: ## Pin-script, symbol-leak and line-count rows
+check-matrix: ## Pin-script and symbol-leak rows
 	@tests/matrix/test_pin.sh
 	@tests/matrix/test_symbols.sh
-	@tests/matrix/test_cloc.sh $(WORKSPACE)/cloc.sh
 
 test: ## Make and run the unit tests
 test: $(APP_DIR)/$(TARGET) $(TEST_EXECUTABLES) $(TEST_GATES)

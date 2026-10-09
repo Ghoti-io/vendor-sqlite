@@ -8,15 +8,53 @@
 
 #include <gtest/gtest.h>
 
+#include <fstream>
 #include <string>
 
+#include <unistd.h>
+
+// The test binary lives under build/, so walk up from it until sqlite-pin
+// is found. That does not depend on the working directory.
+static std::string PinVersion() {
+  char buf[4096];
+  const ssize_t n = ::readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+  if (n < 0) {
+    return {};
+  }
+  std::string path(buf, static_cast<std::size_t>(n));
+  for (int i = 0; i < 8; ++i) {
+    const auto slash = path.find_last_of('/');
+    if (slash == std::string::npos) {
+      break;
+    }
+    path.erase(slash);
+    std::ifstream in((path + "/sqlite-pin").c_str());
+    if (!in) {
+      continue;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+      if (!line.empty() && line.back() == '\r') {
+        line.pop_back();
+      }
+      if (line.compare(0, 15, "version_number=") == 0) {
+        continue;
+      }
+      if (line.compare(0, 8, "version=") == 0) {
+        return line.substr(8);
+      }
+    }
+    return {};
+  }
+  return {};
+}
+
 TEST(Version, LibraryNumberIsThePin) {
-  // The zip name sqlite-amalgamation-3530400 packs 3.53.4 as 3XXYY00.
-  // sqlite3_libversion_number() is SQLITE_VERSION_NUMBER, which the header
-  // defines as X*1000000 + Y*1000 + Z. For 3.53.4 that is 3053004.
-  EXPECT_EQ(3053004, sqlite3_libversion_number());
   EXPECT_EQ(SQLITE_VERSION_NUMBER, sqlite3_libversion_number());
-  EXPECT_STREQ("3.53.4", sqlite3_libversion());
+  EXPECT_STREQ(SQLITE_VERSION, sqlite3_libversion());
+  const std::string pinned = PinVersion();
+  ASSERT_FALSE(pinned.empty());
+  EXPECT_STREQ(pinned.c_str(), sqlite3_libversion());
 }
 
 TEST(LoadExtension, StaysOffUntilACallerEnablesIt) {
