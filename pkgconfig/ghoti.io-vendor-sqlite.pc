@@ -1,0 +1,6 @@
+Name: Ghoti.io Vendor SQLite(BRANCH)
+Description: Pinned SQLite amalgamation. Callers include sqlite3.h.
+Version: (VERSION)
+URL: https://github.com/Ghoti-io/vendor-sqlite
+Libs: -L(PC_LIB_DIR) -l(SUITE)-(PROJECT)(BRANCH)
+CFlags: -I(PC_INCLUDE_DIR)
