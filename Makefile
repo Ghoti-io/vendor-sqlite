@@ -127,10 +127,10 @@ CC := cc
 CFLAGS := -pedantic-errors -Wall -Wextra -Werror -Wfloat-conversion -fstrict-aliasing -Wstrict-aliasing=1 -Wno-error=unused-function -Wfatal-errors -std=c17 $(OPT_CFLAGS) -g $(EXTRA_CFLAGS)
 
 # SQLITE_API comes from src/sqlite_api.h, included on the command line so the
-# amalgamation bytes stay the ones in the zip. The two warning classes are
+# amalgamation bytes stay the ones in the zip. These warning classes are
 # off for this translation unit only: the amalgamation is not clean under
 # them, and it is not edited. No SQLITE_OMIT_* and no SQLITE_ENABLE_*.
-SQLITE_CFLAGS := -Wno-strict-aliasing -Wno-float-conversion -include src/sqlite_api.h
+SQLITE_CFLAGS := -Wno-strict-aliasing -Wno-float-conversion -Wno-unused-but-set-variable -include src/sqlite_api.h
 
 LIB_CFLAGS := $(CFLAGS) -fvisibility=hidden $(SQLITE_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(EXTRA_LDFLAGS)
